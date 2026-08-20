@@ -6,6 +6,7 @@
  * that might touch process.env), then wire up the DB, Redis, BullMQ worker,
  * and Express listener.
  */
+require('../instrument'); // Sentry must be initialised before any other import
 require('./config/env');
 
 const app = require('./app');

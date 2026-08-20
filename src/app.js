@@ -9,6 +9,8 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const compression = require('compression');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./docs/swagger');
 const { requestId } = require('./middleware/requestId');
 const { httpLogger } = require('./utils/logger');
 const errorHandler = require('./middleware/errorHandler');
@@ -46,6 +48,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
+
+// ─── Swagger UI ───────────────────────────────────────────────────────────────
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ─── API routes ───────────────────────────────────────────────────────────────
 app.use('/auth',      authRoutes);

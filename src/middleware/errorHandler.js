@@ -1,4 +1,5 @@
 'use strict';
+const Sentry = require('@sentry/node');
 const logger = require('../utils/logger');
 
 /**
@@ -61,6 +62,10 @@ function errorHandler(err, req, res, next) {
   // ── Unexpected / programming error ─────────────────────────────────────────
   const log = req.log || logger;
   log.error({ err, reqId: req.id }, 'Unhandled error');
+
+  // Capture unexpected errors in Sentry. No-op when SENTRY_DSN is unset
+  // or when Sentry was not initialised (e.g. in unit tests).
+  Sentry.captureException(err);
 
   return res.status(500).json({
     status: 'error',
