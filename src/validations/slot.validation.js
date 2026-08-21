@@ -1,7 +1,7 @@
 'use strict';
 const Joi = require('joi');
 
-// public.users.id is BIGINT — pg returns it as a numeric string (e.g. "42").
+// recall.users.id is BIGINT — pg returns it as a numeric string (e.g. "42").
 const userId = Joi.string().pattern(/^\d+$/).required();
 
 const createHold = {

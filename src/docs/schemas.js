@@ -28,7 +28,7 @@ module.exports = {
   UserProfile: {
     type: 'object',
     properties: {
-      id:        { type: 'string', description: 'BIGINT user ID returned as a string by pg', example: '42' },
+      id:        { type: 'string', description: 'BIGINT recall.users.id returned as a string by pg', example: '42' },
       email:     { type: 'string', format: 'email' },
       username:  { type: 'string' },
       avatarUrl: { type: 'string', nullable: true },

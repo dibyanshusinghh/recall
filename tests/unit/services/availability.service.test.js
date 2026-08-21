@@ -37,7 +37,7 @@ jest.mock('pg', () => ({
 // ── Module-level mocks: I/O boundaries for availability.service ───────────────
 jest.mock('../../../src/repositories/user.repository', () => ({
   getUserProfile: jest.fn(),
-  upsertPublicUser: jest.fn(),
+  upsertUser: jest.fn(),
   upsertUserProfile: jest.fn(),
   upsertGoogleCredentials: jest.fn(),
   findByEmail: jest.fn(),

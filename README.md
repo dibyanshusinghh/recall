@@ -15,7 +15,7 @@ Everything a standard Google account can do:
 | Feature | Implementation |
 |---|---|
 | Google OAuth 2.0 login | `googleapis` + `google-auth-library` |
-| JWT-based sessions | `jsonwebtoken` HS256 (shared secret with the Notify Spring Boot service) |
+| JWT-based sessions | `jsonwebtoken` HS256 (Recall-issued; `sub` is `recall.users.id`) |
 | Google Calendar booking, rescheduling, cancellation | `googleapis` `events.insert / patch / delete` |
 | Working-hours availability engine | Luxon + Google Calendar `freebusy` (graceful degradation if freebusy fails) |
 | Slot holds (race-condition prevention) | Redis `SET NX EX` |
@@ -54,9 +54,9 @@ When `false`, all Tier 2 routes return `{ status: "unavailable" }` (HTTP 200) �
 └─────┬──────────┬───────────────────────┬───────────────────┘
       │          │                       │
   PostgreSQL   Redis              Google APIs
-  (shared with  (slot holds,     (Calendar, Meet,
-   Notify svc)   rate limits,     Drive, Docs,
-                 BullMQ queues)   Pub/Sub)
+  (recall.*     (slot holds,     (Calendar, Meet,
+   including     rate limits,     Drive, Docs,
+   users)        BullMQ queues)   Pub/Sub)
 ```
 
 ---
@@ -67,7 +67,7 @@ When `false`, all Tier 2 routes return `{ status: "unavailable" }` (HTTP 200) �
 |---|---|
 | Runtime | Node.js ≥ 20.20 |
 | Framework | Express 5 |
-| Database | PostgreSQL — `recall` schema (separate from Notify's `public` schema) |
+| Database | PostgreSQL — `recall` schema, including `recall.users` |
 | Cache / queues | Redis + ioredis + BullMQ |
 | Google APIs | `googleapis`, `google-auth-library` |
 | Validation | Joi |
@@ -85,7 +85,7 @@ When `false`, all Tier 2 routes return `{ status: "unavailable" }` (HTTP 200) �
 ## Prerequisites
 
 - **Node.js 20.20+**
-- **PostgreSQL** (shared instance with the Notify Spring Boot service; Recall uses its own `recall` schema)
+- **PostgreSQL** (Recall uses the `recall` schema, including its own `users` table)
 - **Redis**
 - A **Google Cloud project** with the following APIs enabled:
   - Google Calendar API
@@ -129,9 +129,9 @@ All variables are documented in `.env.example`. A summary:
 |---|---|---|
 | `NODE_ENV` | Yes | `development` / `production` / `test` |
 | `PORT` | Yes | HTTP port (default `3000`) |
-| `DATABASE_URL` | Yes | PostgreSQL connection string (shared with Notify) |
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
 | `REDIS_URL` | Yes | Redis connection string |
-| `JWT_SECRET` | Yes | HS256 signing secret (≥ 64 chars). Shared with Notify so it can verify Recall's JWTs. |
+| `JWT_SECRET` | Yes | HS256 signing secret (≥ 64 chars). `sub` is `recall.users.id`. |
 | `JWT_EXPIRES_IN` | Yes | Access token TTL (e.g. `1d`) |
 | `JWT_REFRESH_EXPIRES_IN` | Yes | Refresh token TTL (e.g. `30d`) |
 | `TOKEN_ENCRYPTION_KEY` | Yes | 64-char hex string (32 bytes) for AES-256-GCM token encryption |
@@ -221,7 +221,7 @@ npm run db:migrate:redo     # Roll back and re-apply the last migration
 npm run db:migrate:status   # Show applied/pending migrations
 ```
 
-Migrations live in `migrations/`. Migration `001` verifies that `public.users` (owned by the Notify service) exists and has the expected `BIGINT` primary key. Migration `002` creates the full `recall` schema.
+Migrations live in `migrations/`. Migration `001` creates the `recall` schema. Migration `002` creates `recall.users` and the rest of the Recall tables (FKs point at `recall.users`). Migration `003` retargets FKs for databases that were created when user FKs pointed at `public.users`.
 
 ---
 

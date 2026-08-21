@@ -10,8 +10,8 @@ const pool = new Pool({
 });
 
 // Set search_path on every new connection so Recall queries can reference
-// `meetings`, `user_profiles`, etc. without the `recall.` prefix, while
-// still resolving `public.users` from the Notify service.
+// `users`, `meetings`, `user_profiles`, etc. without the `recall.` prefix.
+// `public` remains on the path for extensions (e.g. gen_random_uuid).
 pool.on('connect', (client) => {
   client.query("SET search_path TO recall, public");
 });

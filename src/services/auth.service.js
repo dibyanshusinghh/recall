@@ -50,12 +50,12 @@ function verifyToken(token) {
  * Ordering:
  *  1. Exchange auth code for Google tokens
  *  2. Fetch user info from Google
- *  3. Upsert public.users (Notify's table) — transactional with SELECT FOR UPDATE to avoid races
+ *  3. Upsert recall.users — INSERT ... ON CONFLICT (email) to avoid races
  *  4. Upsert recall.user_profiles + recall.google_credentials
  *  5. Issue Recall JWTs
  *
- * NOTE on public.users race condition: we use INSERT ... ON CONFLICT to
- * handle concurrent first-time logins atomically at the DB level.
+ * NOTE on concurrent first-time logins: we use INSERT ... ON CONFLICT to
+ * handle them atomically at the DB level.
  */
 async function handleOAuthCallback(code) {
   // Step 1: Exchange authorization code
@@ -70,18 +70,17 @@ async function handleOAuthCallback(code) {
   const { id: googleId, email, name, picture: avatarUrl } = profile;
   if (!email) throw new AppError('Google account has no email address', 400);
 
-  // `name` from Google is used as the Notify `username` field.
+  // `name` from Google is used as the Recall username.
   // If Google provides no name, fall back to the email prefix.
   const username = name || email.split('@')[0];
 
   // Steps 3+4: Upsert in a single DB transaction
   const user = await db.transaction(async (client) => {
-    // Upsert public.users (Notify's table)
-    const publicUser = await userRepo.upsertPublicUser(client, { email, username });
+    const recallUser = await userRepo.upsertUser(client, { email, username });
 
     // Upsert recall-specific profile
     await userRepo.upsertUserProfile(client, {
-      userId: publicUser.id,
+      userId: recallUser.id,
       googleId,
       avatarUrl,
       timezone: 'UTC', // user can update timezone via availability-rules endpoint
@@ -93,14 +92,14 @@ async function handleOAuthCallback(code) {
     const tokenExpiry = tokens.expiry_date ? new Date(tokens.expiry_date) : null;
 
     await userRepo.upsertGoogleCredentials(client, {
-      userId: publicUser.id,
+      userId: recallUser.id,
       refreshTokenEncrypted,
       accessTokenEncrypted,
       tokenExpiry,
       scopes: tokens.scope ? tokens.scope.split(' ') : [],
     });
 
-    return publicUser;
+    return recallUser;
   });
 
   // Step 5: Issue Recall JWTs

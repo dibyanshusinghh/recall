@@ -37,7 +37,7 @@ router.get('/google', authCtrl.redirectToGoogle);
  *     description: >
  *       Google redirects here after the user approves the consent screen.
  *       Exchanges the authorization code for Google tokens, upserts the user
- *       in `public.users` (Notify's table) and `recall.user_profiles`, stores
+ *       in `recall.users` and `recall.user_profiles`, stores
  *       encrypted credentials, and returns Recall JWTs.
  *     tags: [Auth]
  *     parameters:

@@ -14,7 +14,7 @@ const logger = require('../utils/logger');
  *   pubsubEventId:      string  (recall.pubsub_events.id)
  *   messageId:          string
  *   conferenceRecordId: string  (Google Meet resource name)
- *   organizerId:        string  (public.users.id)
+ *   organizerId:        string  (recall.users.id)
  *   resourceName:       string
  *   eventType:          string
  * }

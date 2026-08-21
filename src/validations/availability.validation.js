@@ -1,10 +1,10 @@
 'use strict';
 const Joi = require('joi');
 
-// public.users.id is BIGINT — pg returns it as a numeric string (e.g. "42").
+// recall.users.id is BIGINT — pg returns it as a numeric string (e.g. "42").
 // Accept any non-empty numeric string. Meeting IDs remain UUID.
 const userId = Joi.string().pattern(/^\d+$/).required()
-  .description('User ID (BIGINT from public.users, returned as a numeric string by pg)');
+  .description('User ID (BIGINT from recall.users, returned as a numeric string by pg)');
 
 const ruleSchema = Joi.object({
   dayOfWeek: Joi.number().integer().min(0).max(6).required()
