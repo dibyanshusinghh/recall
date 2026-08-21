@@ -229,7 +229,7 @@ Migrations live in `migrations/`. Migration `001` verifies that `public.users` (
 
 The following are intentional next steps, not oversights:
 
-- **LLM fallback summarizer (Step 15)** — When Gemini does not produce a native summary (e.g. short meeting, free tier), fall back to an LLM (e.g. OpenAI GPT-4o) to generate one from the transcript. Not in scope for this release.
+- **LLM fallback summarizer** — When Gemini does not produce a native summary (e.g. short meeting, free tier), fall back to an LLM (e.g. OpenAI GPT-4o) to generate one from the transcript. Not in scope for this release.
 - **CI/CD pipeline** — GitHub Actions or similar for automated test + lint + deploy on merge.
 - **AWS deployment** — ECS/Fargate task definition, RDS PostgreSQL, ElastiCache Redis, ALB, and environment-specific config. Cloud infrastructure not yet provisioned.
 - **JWT blocklist** — The current logout endpoint is stateless. Production should maintain a Redis set of revoked token JTIs.
